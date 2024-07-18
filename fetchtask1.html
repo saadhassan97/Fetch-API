@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .search, .categories {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 300px;
+            box-sizing: border-box;
+        }
+        
+        .products-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .product {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            text-align: center;
+        }
+        
+        .product img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        .pagination {
+            margin-top: 20px;
+        }
+        
+        .pagination a {
+            padding: 5px 10px;
+            margin: 0 5px;
+            text-decoration: none;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .pagination a:hover {
+            background-color: #f0f0f0;
+        }
+        
+        button {
+            padding: 8px 16px;
+            margin-top: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <input class="search" type="text" style="margin: auto; padding: auto;">
+    <select class="categories">
+        <option value="">All</option>
+        <option value="men's clothing">Men's clothing</option>
+        <option value="jewelery">Jewelery</option>
+        <option value="electronics">Electronics</option>
+        <option value="women's clothing">Women's clothing</option>
+
+    </select>
+    <div class="products-list"></div>
+    <div class="pagination"></div>
+    <script>
+        let products = [];
+        let currentProductsList = []
+        let itemsPerPage = 4;
+        let currentPage = 1;
+        let totalPages;
+        let productListElem = document.getElementsByClassName('products-list')[0];
+        let searchInput = document.getElementsByClassName('search')[0];
+        let categoriesInput = document.getElementsByClassName('categories')[0];
+        function filterProducts() {            
+            let searchValue = searchInput.value;  
+            let categoriesInputValue = categoriesInput.value;
+            currentProductsList = products.filter(element => {
+                return element.title.includes(searchValue) && (categoriesInputValue === '' || element.category === categoriesInputValue)
+            })
+            renderProducts(true);
+        }
+        function renderProducts(isFiltering = false) {            
+            productListElem.innerHTML = '';
+            if (!isFiltering) {            
+                currentProductsList = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);                      
+            }
+            currentProductsList.forEach(element => {
+                productListElem.innerHTML += `
+                <div  class="product"><img src="${element.image}" alt=""><h3>${element.title}</h3><p>${element.price}</p><button>Add to cart</button></div>
+                `
+            })
+        }
+        fetch('https://fakestoreapi.com/products')
+            .then(response => response.json())
+            .then(productsArr => {
+                products = productsArr;
+                totalPages = products.length / itemsPerPage
+                renderProducts();
+                for (let i = 0; i < totalPages; i++) {
+                    document.getElementsByClassName('pagination')[0].innerHTML += `<a class='page-number' href="#">${i + 1}</a>`
+                }            
+                document.querySelectorAll('.page-number').forEach(element => {
+                    element.addEventListener('click', (event) => {
+                        currentPage = event.target.textContent;                        
+                        renderProducts();
+                    })
+                })
+            })      
+            searchInput.addEventListener('input', (event) => {               
+                filterProducts();
+            })
+            categoriesInput.addEventListener('change', (event) => {               
+                filterProducts();
+            })
+    </script>
+</body>
+
+</html>
